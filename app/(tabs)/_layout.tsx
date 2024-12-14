@@ -1,20 +1,25 @@
-import { Stack, Tabs } from "expo-router";
-import React from "react";
-import { Platform } from "react-native";
+import { Redirect, router, Stack, Tabs } from "expo-router";
+import React, { useContext, useEffect } from "react";
+import { Platform, Text } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { Authcontext } from "@/context/auth";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { isAuthenticated, isLoading } = useContext(Authcontext);
+
+  if (isLoading) {
+    return <Text>Loading</Text>;
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect href={"/(tabs)"} />;
+  }
 
   return (
     <>
-      <Tabs screenOptions={{ headerShown : false }}>
+      <Tabs screenOptions={{ headerShown: false }}>
         <Tabs.Screen
           name="index"
           options={{
@@ -23,25 +28,25 @@ export default function TabLayout() {
             tabBarLabelStyle: {
               color: "#9ca3af",
             },
-            tabBarIcon: () => (
+            tabBarIcon: ({ focused }) => (
               <Svg
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 role="img"
-                color="#9b9b9b"
+                color="#7c3aed"
               >
                 <Path
                   opacity="0.4"
                   d="M12.0002 1.25C11.1341 1.25 10.3599 1.52688 9.52399 1.99594C8.71408 2.45043 7.78605 3.12145 6.61905 3.96524L5.11002 5.05632C4.17348 5.73346 3.42547 6.27429 2.86128 6.77487C2.27873 7.29173 1.84292 7.807 1.56648 8.45513C1.28944 9.10469 1.22243 9.77045 1.2596 10.5381C1.29546 11.2789 1.43282 12.1727 1.60411 13.2872L1.91937 15.3387C2.16274 16.9225 2.35653 18.1836 2.64123 19.1662C2.93563 20.1821 3.35034 20.9887 4.09159 21.6052C4.82976 22.2192 5.70909 22.4926 6.78324 22.6231C7.82818 22.75 9.14633 22.75 10.8113 22.75H13.1891C14.854 22.75 16.1722 22.75 17.2171 22.6231C18.2913 22.4926 19.1706 22.2192 19.9088 21.6052C20.65 20.9887 21.0647 20.1821 21.3591 19.1662C21.6438 18.1837 21.8376 16.9225 22.081 15.3387L22.3963 13.2871C22.5676 12.1726 22.7049 11.2789 22.7408 10.5381C22.7779 9.77045 22.7109 9.10469 22.4339 8.45513C22.1575 7.807 21.7216 7.29173 21.1391 6.77487C20.5749 6.2743 19.8269 5.73347 18.8904 5.05633L17.3813 3.96525C16.2143 3.12146 15.2863 2.45043 14.4764 1.99594C13.6405 1.52688 12.8663 1.25 12.0002 1.25Z"
-                  fill="#9b9b9b"
+                  fill={focused ? "#7c3aed" : "#9b9b9b"}
                 ></Path>
                 <Path
                   fillRule="evenodd"
                   clipRule="evenodd"
                   d="M8.21112 16.3858C8.55037 15.95 9.17867 15.8717 9.61448 16.2109C10.2353 16.6942 11.0685 17 12.0002 17C12.932 17 13.7652 16.6942 14.386 16.2109C14.8218 15.8717 15.4501 15.95 15.7893 16.3858C16.1286 16.8216 16.0503 17.4499 15.6145 17.7892C14.6362 18.5507 13.3689 19 12.0002 19C10.6315 19 9.36425 18.5507 8.38597 17.7892C7.95016 17.4499 7.87188 16.8216 8.21112 16.3858Z"
-                  fill="#9b9b9b"
+                  fill={focused ? "#7c3aed" : "#9b9b9b"}
                 ></Path>
               </Svg>
             ),
@@ -55,7 +60,7 @@ export default function TabLayout() {
               color: "#9ca3af",
             },
             headerShown: false,
-            tabBarIcon: () => (
+            tabBarIcon: ({ focused }) => (
               <Svg
                 width="24"
                 height="24"
@@ -67,19 +72,52 @@ export default function TabLayout() {
                 <Path
                   opacity="0.4"
                   d="M6.25 7C6.25 3.82436 8.82436 1.25 12 1.25C15.1756 1.25 17.75 3.82436 17.75 7V11C17.75 14.1756 15.1756 16.75 12 16.75C8.82436 16.75 6.25 14.1756 6.25 11V7Z"
-                  fill="#9b9b9b"
+                  fill={focused ? "#7c3aed" : "#9b9b9b"}
                 ></Path>
                 <Path
                   fillRule="evenodd"
                   clipRule="evenodd"
                   d="M4.22222 10.25C4.75917 10.25 5.19444 10.6805 5.19444 11.2115C5.19444 14.9288 8.2414 17.9423 12 17.9423C15.7586 17.9423 18.8056 14.9288 18.8056 11.2115C18.8056 10.6805 19.2408 10.25 19.7778 10.25C20.3147 10.25 20.75 10.6805 20.75 11.2115C20.75 15.6659 17.3472 19.3343 12.9722 19.8126V20.8269H14.9167C15.4536 20.8269 15.8889 21.2574 15.8889 21.7885C15.8889 22.3195 15.4536 22.75 14.9167 22.75H9.08333C8.54639 22.75 8.11111 22.3195 8.11111 21.7885C8.11111 21.2574 8.54639 20.8269 9.08333 20.8269H11.0278V19.8126C6.65283 19.3343 3.25 15.6659 3.25 11.2115C3.25 10.6805 3.68528 10.25 4.22222 10.25Z"
-                  fill="#9b9b9b"
+                  fill={focused ? "#7c3aed" : "#9b9b9b"}
                 ></Path>
               </Svg>
             ),
           }}
         />
-       
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Profile",
+            tabBarLabelStyle: {
+              color: "#9ca3af",
+            },
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <Svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              role="img"
+              color="#9b9b9b"
+            >
+              <Path
+                opacity="0.4"
+                d="M1.25 12C1.25 6.06294 6.06294 1.25 12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12Z"
+                fill={focused ? "#7c3aed" : "#9b9b9b"}
+              ></Path>
+              <Path
+                d="M8.73808 9.5C8.73808 7.70407 10.1958 6.25 11.9916 6.25C13.7875 6.25 15.2452 7.70407 15.2452 9.5C15.2452 11.2959 13.7875 12.75 11.9916 12.75C10.1958 12.75 8.73808 11.2959 8.73808 9.5Z"
+                fill={focused ? "#7c3aed" : "#9b9b9b"}
+              ></Path>
+              <Path
+                d="M6.96382 16.4756C9.57472 13.7487 14.3735 13.6002 17.0409 16.4802L17.2239 16.6631C17.3692 16.8084 17.4485 17.0069 17.4433 17.2123C17.4382 17.4177 17.349 17.612 17.1966 17.7498C15.8225 18.9923 13.9989 19.75 12.0001 19.75C10.0013 19.75 8.17769 18.9923 6.8036 17.7498C6.65122 17.612 6.56204 17.4177 6.55688 17.2123C6.55172 17.0069 6.63104 16.8084 6.77631 16.6631L6.96382 16.4756Z"
+                fill="#9b9b9b"
+              ></Path>
+            </Svg>
+            ),
+          }}
+        />
       </Tabs>
     </>
   );

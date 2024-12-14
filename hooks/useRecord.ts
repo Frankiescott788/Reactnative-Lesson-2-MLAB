@@ -14,6 +14,8 @@ import * as filesystem from "expo-file-system";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Rec_storage, Recording } from "@/types/types";
+import * as Sharing from "expo-sharing";
+import supabase from "@/supabase/config";
 
 export default function useRecord() {
   const [isRecording, setIsrecording] = useState<any | null>(null);
@@ -23,6 +25,7 @@ export default function useRecord() {
   const incrementRef = useRef<number>(0);
   const [onOpen, setOpen] = useState<boolean>(false);
   const [audioName, setAudioname] = useState<string>("");
+  const [currentURI, setCurrentURI] = useState("");
 
   const [recordings, setRecordings] = useState([]);
 
@@ -103,33 +106,59 @@ export default function useRecord() {
 
   const save_recording = async () => {
     try {
+      // Copy the file to a specific directory
       await filesystem.copyAsync({
         from: audioURI,
         to: `${filesystem.documentDirectory}/recordings/${audioName}.m4a`,
       });
-
+  
+      // Retrieve previous recordings from AsyncStorage
       const prevItems: any = await AsyncStorage.getItem("recordings");
-
       const parsedData = JSON.parse(prevItems) || [];
-
+  
+      // Add new recording to the list
       const new_recording = {
         name: audioName,
         duration,
         audioURI,
         createdAt: new Date().toISOString(),
       };
-
+  
       await AsyncStorage.setItem(
         "recordings",
         JSON.stringify([...parsedData, new_recording])
       );
-
-      console.log("saved");
+  
+      // Read the file as a binary stream
+      const fileContents = await filesystem.readAsStringAsync(audioURI, {
+        encoding: filesystem.EncodingType.Base64,
+      });
+  
+      // Convert the Base64 string to a Blob-like object (React Native workaround)
+      const base64Data = `data:audio/m4a;base64,${fileContents}`;
+  
+      const { data, error } = await supabase.storage
+        .from("recordings")
+        .upload(`recordings/${audioName}.m4a`, base64Data, {
+          cacheControl: "3600",
+          upsert: true,
+          contentType: "audio/m4a", // Ensure correct content type
+        });
+  
+      if (error) {
+        throw new Error(error.message);
+      }
+  
+      console.log("Uploaded file:", data);
+  
+      console.log("Recording saved successfully!");
       router.navigate("/");
     } catch (error) {
-      console.log(error);
+      console.error("Error saving recording:", error);
     }
   };
+  
+  
 
   const get_recording = async (uri: string) => {
     try {
@@ -146,6 +175,8 @@ export default function useRecord() {
       await sound.unloadAsync();
       await sound.loadAsync({ uri: file_info.at(0).audioURI });
       await sound.playAsync();
+
+      setCurrentURI(file_info.at(0).audioURI);
 
       console.log("playing");
     } catch (error) {
@@ -177,6 +208,18 @@ export default function useRecord() {
     }
   };
 
+  const Share_recording = async (uri : string) => {
+    try {
+      if(!(await Sharing.isAvailableAsync())) {
+        console.log("Sharing unavailable on this device");
+        return;
+      }
+      await Sharing.shareAsync(uri)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return {
     start_recording,
     stop_recording,
@@ -196,5 +239,7 @@ export default function useRecord() {
     get_recording,
     unload_recording,
     delete_recording,
+    Share_recording,
+    currentURI
   };
 }
